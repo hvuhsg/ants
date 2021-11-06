@@ -3,7 +3,8 @@ from typing import List
 from time import sleep
 from random import choice
 
-from pythonping import ping
+
+from loguru import logger
 from ants import BaseNode, Job, State
 from ants.communications import SocketCommunication
 
@@ -21,7 +22,7 @@ class Node(BaseNode):
 
     def completed_jobs(self, done_jobs: List[Job]):
         for job in done_jobs:
-            print(f'Log of {self.node_id}', job.name, job.payload, job.result)
+            logger.success(f'{job.name} job completed: payload={job.payload}, result={job.result}')
             self.completed_jobs_set.add(job)
 
     def add_jobs(self) -> List[Job]:
@@ -32,7 +33,6 @@ class Node(BaseNode):
         return jobs  # Add job to ping peer ip
 
     def assign_to_jobs(self, pending_jobs: List[Job]):
-        print('pending jobs count', len(pending_jobs))
         allowed_assignment = self.config.max_assigned_jobs - self.assigned_jobs_count
         return pending_jobs[:allowed_assignment]
 
@@ -40,7 +40,8 @@ class Node(BaseNode):
         for job in assigned_jobs:
             if job.name == 'ping':
                 try:
-                    response = os.system("ping -c 1 " + job.payload['ip'])
+                    logger.info(f'sending ping to {job.payload["ip"]}')
+                    response = os.system("ping -c 1 " + job.payload['ip'] + '> /dev/null')
                     ping_result = not bool(response)
                     # ping_result = any(ping(target=job.payload['ip'], timeout=5, count=2))
                 except Exception:
