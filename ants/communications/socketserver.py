@@ -65,7 +65,7 @@ class SocketCommunication(BaseCommunication, Thread):
         self._pull_interval = pull_interval
 
         self.server_address = (host, port)
-        self.peers = {('127.0.0.1', 34687)}  # bootstrap nodes
+        self.peers = {('5.183.9.78', 34687)}  # bootstrap nodes
         self.pulled_states = []
         self.socket_server = SocketServer(self, self.server_address, RequestHandler)
         self.current_state = State()
