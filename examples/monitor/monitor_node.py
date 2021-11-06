@@ -1,3 +1,4 @@
+import os
 from typing import List
 from time import sleep
 from random import choice
@@ -39,7 +40,9 @@ class Node(BaseNode):
         for job in assigned_jobs:
             if job.name == 'ping':
                 try:
-                    ping_result = any(ping(target=job.payload['ip'], timeout=5, count=2))
+                    response = os.system("ping -c 1 " + job.payload['ip'])
+                    ping_result = not bool(response)
+                    # ping_result = any(ping(target=job.payload['ip'], timeout=5, count=2))
                 except Exception:
                     job.set_result({'res': False, 'ip': job.payload['ip']})
                 else:
