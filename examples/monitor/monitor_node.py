@@ -16,6 +16,8 @@ HEARTBEAT_INTERVAL = 30
 TELEGRAM_CHAT_ID = '-1001574719922'
 TELEGRAM_BOT_TOKEN = '2125627071:AAEoqEXo_r-unFGbHPCDXhJ6gBOk9xC9Xxc'
 BANNER = '''\
+
+-------------------------------------------------------------------------------------------------------------------
 Welcome to the DecentralizedMonitor!!
 we here to help you monitor your server operational status more reliably and free with our community based monitor.
 
@@ -28,6 +30,8 @@ $> sudo ufw allow {port}
 
 Every down time will be notified at this channel:
 https://t.me/decentralized_monitoring
+-------------------------------------------------------------------------------------------------------------------
+
 '''
 
 
