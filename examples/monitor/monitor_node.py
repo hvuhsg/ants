@@ -19,7 +19,7 @@ BANNER = '''\
 
 -------------------------------------------------------------------------------------------------------------------
 Welcome to the DecentralizedMonitor!!
-we here to help you monitor your server operational status more reliably and free with our community based monitor.
+We here to help you monitor your server operational status more reliably and free with our community based monitor.
 
 The monitor will connect to our P2P network and will be monitored by the network,
 check will be preformed every few minutes (average 3min)
