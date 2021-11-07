@@ -89,7 +89,7 @@ def run():
     node = Node(
         initial_config=Config(heartbeat_interval=HEARTBEAT_INTERVAL, max_assigned_jobs=1),
         communication=SocketCommunication(
-            host=f'0.0.0.0',
+            host='0.0.0.0',
             port=listen_port,
             pull_interval=12,
             bootstrap_nodes=[('5.183.9.78', 34687)]
