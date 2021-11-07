@@ -8,7 +8,7 @@ setup(
       name='pyants',
       version='0.1.0',
       description='Allow you to create you own custom decentralize job management system.',
-      url='https://github.com/hvushg/ants',
+      url='https://github.com/hvuhsg/ants',
       author='Yehoyada.s',
       author_email='hvuhsg6@gmail.com',
       license='GPLv3',
