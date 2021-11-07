@@ -40,10 +40,11 @@ class MyNode(BaseNode):
 The communication class expose tow methods:
 - pull
 - broadcast
-The 'pull' method should return list of state objects from other nodes
-The 'broadcast' method should transfer your state to other nodes
 
-The library implemented for you simple p2p socket server communication for decentralized networking
+The 'pull' method should return list of state objects from other nodes  
+The 'broadcast' method should transfer your state to other nodes  
+
+The library implemented for you a simple p2p socket server communication for decentralized networking
 ```python
 from ants.communications.socketserver import SocketCommunication
 
