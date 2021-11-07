@@ -15,6 +15,20 @@ from config import Config
 HEARTBEAT_INTERVAL = 30
 TELEGRAM_CHAT_ID = '-1001574719922'
 TELEGRAM_BOT_TOKEN = '2125627071:AAEoqEXo_r-unFGbHPCDXhJ6gBOk9xC9Xxc'
+BANNER = '''\
+Welcome to the DecentralizedMonitor!!
+we here to help you monitor your server operational status more reliably and free with our community based monitor.
+
+The monitor will connect to our P2P network and will be monitored by the network,
+check will be preformed every few minutes (average 3min)
+
+Make sure that your server has public ip and can get income traffic on the server port <{port}>
+if you have ufw active use this command to allow the income traffic on this port:
+$> sudo ufw allow {port}
+
+Every down time will be notified at this channel:
+https://t.me/decentralized_monitoring
+'''
 
 
 class Node(BaseNode):
@@ -57,6 +71,7 @@ class Node(BaseNode):
                 else:
                     job.set_result({'res': ping_result, 'ip': job.payload['ip']})
             elif job.name == 'notify':
+                logger.info(f'sending telegram message')
                 telegram_notifier = get_notifier('telegram')
                 response = telegram_notifier.notify(
                     message=f'🟥🟥 {job.payload["ip"]} ware down at {job.payload["at"]} 🟥🟥',
@@ -67,17 +82,20 @@ class Node(BaseNode):
 
 
 def run():
+    listen_port = 34687
     node = Node(
         initial_config=Config(heartbeat_interval=HEARTBEAT_INTERVAL, max_assigned_jobs=1),
         communication=SocketCommunication(
             host=f'0.0.0.0',
-            port=34687,
+            port=listen_port,
             pull_interval=12,
             bootstrap_nodes=[('5.183.9.78', 34687)]
         ),
         initial_state=State(),
     )
     node.start()
+
+    print(BANNER.format(port=listen_port))
 
     while True:  # IDLE
         sleep(10)
