@@ -2,6 +2,11 @@
 Allow you to create you own custom decentralize job management system.
 
 
+### install
+```shell script
+pip install pyants
+```
+
 ### How it works?
 The library provides you with interface to add assign and do jobs in an decentralized environment.
 For example to create your own node just override some methods:
