@@ -60,12 +60,14 @@ class SocketCommunication(BaseCommunication, Thread):
 
     SOCKET_TIMEOUT = 15
 
-    def __init__(self, host='0.0.0.0', port=34687, pull_interval=2):
+    def __init__(self, host='0.0.0.0', port=34687, pull_interval=10, bootstrap_nodes: list = None):
+        if bootstrap_nodes is None:
+            bootstrap_nodes = []
         self._run = True
         self._pull_interval = pull_interval
 
         self.server_address = (host, port)
-        self.peers = {('5.183.9.78', 34687)}  # bootstrap nodes
+        self.peers = set(bootstrap_nodes)  # bootstrap nodes
         self.pulled_states = []
         self.socket_server = SocketServer(self, self.server_address, RequestHandler)
         self.current_state = State()
