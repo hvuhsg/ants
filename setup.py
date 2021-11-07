@@ -16,10 +16,9 @@ setup(
       keywords=['decentralize', 'job', 'jobs', 'job management'],
       classifiers=[
             'Development Status :: 3 - Alpha',
-            'Environment :: No Input/Output (Daemon)'
             'Intended Audience :: Developers',
-            'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)'
-            'Natural Language :: English'
+            'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+            'Natural Language :: English',
       ],
       long_description=long_description,
       long_description_content_type='text/markdown',
