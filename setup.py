@@ -5,7 +5,7 @@ with open('README.md') as file:
 
 
 setup(
-      name='ants',
+      name='pyants',
       version='0.1.0',
       description='Allow you to create you own custom decentralize job management system.',
       url='https://github.com/hvushg/ants',
