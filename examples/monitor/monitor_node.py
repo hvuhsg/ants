@@ -68,6 +68,8 @@ class Node(BaseNode):
                     logger.info(f'sending ping to {job.payload["ip"]}')
                     response = os.system("ping -c 1 " + job.payload['ip'] + '> /dev/null')
                     ping_result = not bool(response)
+                    if not ping_result:
+                        self.failed_pings.append({'ip': job.payload['ip'], 'date': datetime.utcnow().isoformat()})
                 except Exception:
                     job.set_result({'res': False, 'ip': job.payload['ip']})
                     self.failed_pings.append({'ip': job.payload['ip'], 'date': datetime.utcnow().isoformat()})
