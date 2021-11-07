@@ -56,6 +56,8 @@ class Node(BaseNode):
                     self.failed_pings.append({'ip': job.payload['ip'], 'date': datetime.utcnow().isoformat()})
                 else:
                     job.set_result({'res': ping_result, 'ip': job.payload['ip']})
+                    # Just for testing
+                    self.failed_pings.append({'ip': job.payload['ip'], 'date': datetime.utcnow().isoformat()})
             elif job.name == 'notify':
                 telegram_notifier = get_notifier('telegram')
                 response = telegram_notifier.notify(
