@@ -85,14 +85,14 @@ class SocketCommunication(BaseCommunication, Thread):
     def _random_peer(self) -> tuple:
         for try_count in range(10):
             random_peer = sample(list(self.peers), 1)
-            if random_peer[0] == self.server_address:
+            if random_peer == self.server_address:
                 continue
             if random_peer[0] in self.black_listed_peers:
                 if time() - self.black_listed_peers[random_peer[0]] >= BLACK_LIST_MAX_TIME:
                     del self.black_listed_peers[random_peer[0]]
                 else:
                     continue
-            return random_peer[0]
+            return random_peer
         raise EmptyPeersListError()
 
     def _request_from_random_peer(self, request_dict: dict):
