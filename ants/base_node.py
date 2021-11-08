@@ -92,7 +92,7 @@ class BaseNode(ABC, Thread):
             self.__remove_done_jobs()
             self.__remove_expired_messages()
 
-            self.process_messages(self.state.messages)
+            self.process_messages(self.state.messages.values())
 
             self.do_jobs(self.__filter_my_assigned_jobs())
 
