@@ -86,23 +86,29 @@ class BaseNode(ABC, Thread):
         for beat_number in self.heartbeat:
             peers_state = self.communication.pull()
             self.__merge_peers_state(peers_state)
-
+            print(self.state)
+            print('1', self.state.jobs)
             self.completed_jobs(self._filter_jobs_by_status(JobStatus.DONE))
 
             self.__remove_done_jobs()
             self.__remove_expired_messages()
+            print('2', self.state.jobs)
 
             self.process_messages(self.state.messages.values())
+            print('3', self.state.jobs)
 
             self.do_jobs(self.__filter_my_assigned_jobs())
+            print('4', self.state.jobs)
 
-            assigned_jobs = self.assign_to_jobs(self._filter_jobs_by_status(JobStatus.ASSIGNED))
+            assigned_jobs = self.assign_to_jobs(self._filter_jobs_by_status(JobStatus.PENDING))
             for job in assigned_jobs:
                 job.assign(self.node_id)
+            print('5', self.state.jobs)
 
             new_jobs = self.add_jobs()
             for new_job in new_jobs:
                 self.state.jobs[new_job.id] = new_job
+            print('6', self.state.jobs)
 
             new_messages = self.add_messages()
             for new_message in new_messages:

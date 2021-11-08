@@ -76,14 +76,11 @@ class Node(BaseNode):
         return []
 
     def process_messages(self, messages: List[Message]):
-        print(self.communication.peers)
         self.ip_to_telegram_mention.clear()
         for message in messages:
-            print(message.to_dict())
             self.ip_to_telegram_mention[message.payload['ip']] = message.payload['mention_on_telegram']
 
     def completed_jobs(self, done_jobs: List[Job]):
-        print(done_jobs)
         for job in done_jobs:
             logger.success(f'{job.name} job completed: payload={job.payload}, result={job.result}')
             self.completed_jobs_set.add(job)
@@ -111,7 +108,6 @@ class Node(BaseNode):
         return jobs
 
     def assign_to_jobs(self, pending_jobs: List[Job]):
-        print(pending_jobs)
         allowed_assignment = self.config.max_assigned_jobs - self.assigned_jobs_count
         return pending_jobs[:allowed_assignment]
 
