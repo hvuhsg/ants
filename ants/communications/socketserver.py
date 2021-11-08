@@ -87,9 +87,9 @@ class SocketCommunication(BaseCommunication, Thread):
             random_peer = sample(list(self.peers), 1)
             if random_peer[0] == self.server_address:
                 continue
-            if random_peer in self.black_listed_peers:
-                if time() - self.black_listed_peers[random_peer] >= BLACK_LIST_MAX_TIME:
-                    del self.black_listed_peers[random_peer]
+            if random_peer[0] in self.black_listed_peers:
+                if time() - self.black_listed_peers[random_peer[0]] >= BLACK_LIST_MAX_TIME:
+                    del self.black_listed_peers[random_peer[0]]
                 else:
                     continue
             return random_peer[0]
@@ -105,10 +105,10 @@ class SocketCommunication(BaseCommunication, Thread):
             response_json = sock.recv(1000 * 1000)
         except ConnectionError:
             self.peers_penalty[peer_address] += 1
-            if self.peers_penalty[peer_address] > PENALTY_THRESHOLD:
+            if self.peers_penalty[peer_address[0]] > PENALTY_THRESHOLD:
                 self.peers.remove(peer_address)
-                self.black_listed_peers[peer_address] = time()
-                self.peers_penalty[peer_address] -= 1
+                self.black_listed_peers[peer_address[0]] = time()
+                self.peers_penalty[peer_address[0]] -= 1
             return None
         else:
             self.peers_penalty[peer_address] = 0
