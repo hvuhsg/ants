@@ -1,6 +1,6 @@
 from threading import Thread
 from random import sample
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import socket, AF_INET, SOCK_STREAM, timeout as SocketTimeout
 from collections import defaultdict
 from time import sleep, time
 from typing import List
@@ -103,7 +103,7 @@ class SocketCommunication(BaseCommunication, Thread):
             sock.connect(peer_address)
             sock.send(dumps(request_dict).encode())
             response_json = sock.recv(1000 * 1000)
-        except ConnectionError:
+        except (ConnectionError, SocketTimeout):
             self.peers_penalty[peer_address] += 1
             if self.peers_penalty[peer_address[0]] > PENALTY_THRESHOLD:
                 self.peers.remove(peer_address)
