@@ -50,9 +50,9 @@ class Job:
     @property
     def vector(self) -> float:
         date_sigmoid = 1 - sigmoid(round(self.created_at.timestamp()))  # older the better
-        date_wight = 5
+        date_wight = 10
         id_sigmoid = sigmoid(self.assigned_to)  # tie break
-        id_wight = 5
+        id_wight = 1
         return (date_sigmoid * date_wight) + (id_sigmoid * id_wight)
 
     def __gt__(self, other):
