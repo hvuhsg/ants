@@ -78,7 +78,7 @@ class BaseNode(ABC, Thread):
             del self.state.jobs[job.id]
 
     def __remove_expired_messages(self):
-        for message in self.state.messages:
+        for message in self.state.messages.values():
             if message.is_expired:
                 del self.state.messages[message.id]
 
