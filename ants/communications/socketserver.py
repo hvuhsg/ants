@@ -92,7 +92,7 @@ class SocketCommunication(BaseCommunication, Thread):
                     del self.black_listed_peers[random_peer[0]]
                 else:
                     continue
-            return random_peer
+            return tuple(random_peer)
         raise EmptyPeersListError()
 
     def _request_from_random_peer(self, request_dict: dict):
