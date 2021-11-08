@@ -2,6 +2,7 @@ import os
 from typing import List
 from time import sleep
 from random import choice
+from functools import lru_cache
 from datetime import datetime, timedelta
 
 from requests import get
@@ -36,6 +37,7 @@ https://t.me/decentralized_monitoring
 '''
 
 
+@lru_cache
 def my_public_ip():
     try:
         ip = get('https://api.ipify.org').text
@@ -146,6 +148,7 @@ def run():
     node = Node(
         initial_config=Config(heartbeat_interval=HEARTBEAT_INTERVAL, max_assigned_jobs=1),
         communication=SocketCommunication(
+            my_public_ip=my_public_ip(),
             host='0.0.0.0',
             port=listen_port,
             pull_interval=12,
