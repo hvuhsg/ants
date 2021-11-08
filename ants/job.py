@@ -53,7 +53,7 @@ class Job:
         date_weight = 10
         id_sigmoid = sigmoid(self.assigned_to)  # tie break
         id_weight = 1
-        return (date_sigmoid * date_weight) + (id_sigmoid * id_weight)
+        return (date_sigmoid * date_weight) + (id_sigmoid * id_weight) + self.status.value
 
     def __gt__(self, other):
         return self.vector > other.vector
