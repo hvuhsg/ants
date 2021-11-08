@@ -28,11 +28,7 @@ class BaseNode(ABC, Thread):
 
     @property
     def assigned_jobs_count(self) -> int:
-        return len(
-            list(
-                filter(lambda job: job.assigned_to == self.node_id, self._filter_jobs_by_status(JobStatus.ASSIGNED))
-            )
-        )
+        return len(self.__filter_my_assigned_jobs())
 
     @abstractmethod
     def add_messages(self) -> List[Message]:
@@ -101,12 +97,15 @@ class BaseNode(ABC, Thread):
             print('4', self.state.jobs)
 
             assigned_jobs = self.assign_to_jobs(self._filter_jobs_by_status(JobStatus.PENDING))
+            print(len(assigned_jobs))
             for job in assigned_jobs:
                 job.assign(self.node_id)
             print('5', self.state.jobs)
 
             new_jobs = self.add_jobs()
             for new_job in new_jobs:
+                if new_job.id in self.state.jobs:
+                    continue
                 self.state.jobs[new_job.id] = new_job
             print('6', self.state.jobs)
 
