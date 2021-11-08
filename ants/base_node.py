@@ -7,7 +7,8 @@ from .state import State
 from .base_communication import BaseCommunication
 from .heartbeat import Heartbeat
 from .base_config import BaseConfig
-from .job import Job
+from .job import Job, JobStatus
+from .message import Message
 
 
 class BaseNode(ABC, Thread):
@@ -17,7 +18,7 @@ class BaseNode(ABC, Thread):
             initial_state: State,
             communication: BaseCommunication,
     ):
-        self.node_id = randrange(1, 9999999999)
+        self.node_id = randrange(1, 2**64)
         self.config = initial_config
         self.state = initial_state
         self.heartbeat = Heartbeat(interval=initial_config.heartbeat_interval)
@@ -27,10 +28,22 @@ class BaseNode(ABC, Thread):
 
     @property
     def assigned_jobs_count(self) -> int:
-        return len(list(filter(lambda job: job.assigned_to == self.node_id, self.state.assigned_jobs)))
+        return len(
+            list(
+                filter(lambda job: job.assigned_to == self.node_id, self._filter_jobs_by_status(JobStatus.ASSIGNED))
+            )
+        )
 
     @abstractmethod
-    def add_jobs(self):
+    def add_messages(self) -> List[Message]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def process_messages(self, messages: List[Message]):
+        raise NotImplementedError
+
+    @abstractmethod
+    def add_jobs(self) -> List[Job]:
         raise NotImplementedError
 
     @abstractmethod
@@ -49,27 +62,50 @@ class BaseNode(ABC, Thread):
         for peer_state in peers_state:
             self.state.merge(peer_state)
 
+    def _filter_jobs_by_status(self, status: JobStatus):
+        return list(filter(lambda job: job.status == status, self.state.jobs.values()))
+
     def __filter_my_assigned_jobs(self) -> List[Job]:
-        return list(filter(lambda job: job.assigned_to == self.node_id, self.state.assigned_jobs))
+        return list(
+            filter(
+                lambda job: job.assigned_to == self.node_id,
+                self._filter_jobs_by_status(JobStatus.ASSIGNED)
+            )
+        )
 
     def __remove_done_jobs(self):
-        for job in self.state.done_jobs:
-            self.state.remove_job(job.id)
+        for job in self._filter_jobs_by_status(JobStatus.DONE):
+            del self.state.jobs[job.id]
+
+    def __remove_expired_messages(self):
+        for message in self.state.messages:
+            if message.is_expired:
+                del self.state.messages[message.id]
 
     def run(self):
         for beat_number in self.heartbeat:
             peers_state = self.communication.pull()
             self.__merge_peers_state(peers_state)
 
-            self.completed_jobs(self.state.done_jobs)
+            self.completed_jobs(self._filter_jobs_by_status(JobStatus.DONE))
+
             self.__remove_done_jobs()
+            self.__remove_expired_messages()
+
+            self.process_messages(self.state.messages)
+
             self.do_jobs(self.__filter_my_assigned_jobs())
-            assigned_jobs = self.assign_to_jobs(self.state.pending_jobs)
+
+            assigned_jobs = self.assign_to_jobs(self._filter_jobs_by_status(JobStatus.ASSIGNED))
             for job in assigned_jobs:
                 job.assign(self.node_id)
 
             new_jobs = self.add_jobs()
             for new_job in new_jobs:
-                self.state.add_job(new_job)
+                self.state.jobs[new_job.id] = new_job
+
+            new_messages = self.add_messages()
+            for new_message in new_messages:
+                self.state.messages[new_message.id] = new_message
 
             self.communication.broadcast(self.state)

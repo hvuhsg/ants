@@ -61,15 +61,14 @@ class Job:
     def __eq__(self, other):
         return self.vector == other.vector  # rarely happened
 
+    def __repr__(self):
+        return f'Job<id={self.id}, name={self.name}, status={self.status}>'
+
     def __str__(self):
-        return f'''\
-    id = {self.id},
-    name = {self.name},
-    payload = {self.payload},
-    assigned = {self.assigned_to},
-    status = {self.status},
-    result = {self.result},
-'''
+        return f'Job<id={self.id}, name={self.name}, payload={self.payload} status={self.status}>'
+
+    def __hash__(self):
+        return hash(f'{self.id}:{self.created_at}:{self.status}:{self.assigned_to}:{self.result}')
 
     def to_dict(self) -> dict:
         return {
@@ -93,6 +92,3 @@ class Job:
             result=job_dict['result'],
         )
         return job
-
-    def __hash__(self):
-        return hash(f'{self.id}:{self.created_at}:{self.status}:{self.assigned_to}:{self.result}')

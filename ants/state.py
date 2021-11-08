@@ -1,46 +1,48 @@
-from .job import JobStatus, Job
+from .job import Job
+from .message import Message
 
 
 class State:
-    def __init__(self, jobs: dict = None):
+    def __init__(self, jobs: dict = None, messages: dict = None):
         if jobs is None:
             jobs = {}
-        self._jobs = jobs  # {job_id: job_object}
-
-    def add_job(self, job: Job):
-        existing_job = self._jobs.get(job.id, None)
-        if existing_job and existing_job > job:
-            return
-        self._jobs[job.id] = job
-
-    def remove_job(self, job_id: str):
-        del self._jobs[job_id]
-
-    def _filter_jobs_by_status(self, status: JobStatus):
-        return list(filter(lambda job: job.status == status, self._jobs.values()))
-
-    @property
-    def pending_jobs(self) -> list:
-        return self._filter_jobs_by_status(JobStatus.PENDING)
-
-    @property
-    def assigned_jobs(self) -> list:
-        return self._filter_jobs_by_status(JobStatus.ASSIGNED)
-
-    @property
-    def done_jobs(self) -> list:
-        return self._filter_jobs_by_status(JobStatus.DONE)
+        if messages is None:
+            messages = {}
+        self.jobs = jobs  # {job_id: job_object}
+        self.messages = messages  # {message_id: message_object}
 
     def merge(self, other_state):
-        for job in other_state._jobs.values():
-            my_job = self._jobs.get(job.id, None)
+        for job in other_state.jobs.values():
+            my_job = self.jobs.get(job.id, None)
             if my_job:
                 job = max(job, my_job)
-            self._jobs[job.id] = job
+            self.jobs[job.id] = job
+        for message in other_state.messages.values():
+            my_message = self.messages.get(message.id, None)
+            if my_message:
+                message = max(message, my_message)
+            self.messages[message.id] = message
+
+    def to_dict(self) -> dict:
+        jobs = {job_id: job.to_dict() for job_id, job in self.jobs.items()}
+        messages = {message_id: message.to_dict() for message_id, message in self.messages.items()}
+        return {'jobs': jobs, 'messages': messages}
+
+    @classmethod
+    def from_dict(cls, dict_: dict):
+        jobs = {job_id: Job.from_dict(job_dict) for job_id, job_dict in dict_['jobs'].items()}
+        messages = {
+            message_id: Message.from_dict(message_dict)
+            for message_id, message_dict in dict_['messages'].messages.items()
+        }
+        return cls(jobs=jobs, messages=messages)
 
     def __str__(self):
+        max_jobs_printed = 3
         state_str = 'State(\n'
-        for job in self._jobs.values():
-            state_str += f'{job}\n'
+        for job in list(self.jobs.values())[:min(max_jobs_printed, len(self.jobs))]:
+            state_str += str(job) + '\n'
+        if len(self.jobs) > max_jobs_printed:
+            state_str += '...\n'
         state_str += ')'
         return state_str
