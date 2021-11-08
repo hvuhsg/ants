@@ -33,7 +33,7 @@ class State:
         jobs = {job_id: Job.from_dict(job_dict) for job_id, job_dict in dict_['jobs'].items()}
         messages = {
             message_id: Message.from_dict(message_dict)
-            for message_id, message_dict in dict_['messages'].messages.items()
+            for message_id, message_dict in dict_['messages'].items()
         }
         return cls(jobs=jobs, messages=messages)
 
