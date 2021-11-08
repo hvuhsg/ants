@@ -1,30 +1,21 @@
 from threading import Thread
 from random import sample
 from socket import socket, AF_INET, SOCK_STREAM
-from time import sleep
+from collections import defaultdict
+from time import sleep, time
 from typing import List
 from socketserver import ThreadingTCPServer, BaseRequestHandler
 from json import loads, dumps
 
 from ..state import State
 from ..base_communication import BaseCommunication
-from ..job import Job
 
 
 __all__ = ['SocketCommunication']
 
 
-def state_from_dict(state_dict: dict) -> State:
-    jobs = {
-        job_dict['id']: Job.from_dict(job_dict)
-        for job_dict in state_dict['jobs']
-    }
-    return State(jobs=jobs)
-
-
-def state_to_dict(state: State) -> dict:
-    jobs_list = [job.to_dict() for job in state._jobs.values()]
-    return {'jobs': jobs_list}
+PENALTY_THRESHOLD = 10
+BLACK_LIST_MAX_TIME = 10*60  # in seconds
 
 
 class EmptyPeersListError(Exception):
@@ -46,7 +37,7 @@ class RequestHandler(BaseRequestHandler):
             json_peers = dumps(list(self.server.communication.peers))
             self.request.send(json_peers.encode())
         elif request_dict['route'] == 'pull_state':
-            json_state = dumps(state_to_dict(self.server.communication.current_state))
+            json_state = dumps(self.server.communication.current_state.to_dict())
             self.request.send(json_state.encode())
 
 
@@ -68,6 +59,9 @@ class SocketCommunication(BaseCommunication, Thread):
 
         self.server_address = (host, port)
         self.peers = set(bootstrap_nodes)  # bootstrap nodes
+        self.black_listed_peers = {}
+        self.peers_penalty = defaultdict(int)
+
         self.pulled_states = []
         self.socket_server = SocketServer(self, self.server_address, RequestHandler)
         self.current_state = State()
@@ -93,31 +87,48 @@ class SocketCommunication(BaseCommunication, Thread):
             random_peer = sample(list(self.peers), 1)
             if random_peer[0] == self.server_address:
                 continue
+            if random_peer in self.black_listed_peers:
+                if time() - self.black_listed_peers[random_peer] >= BLACK_LIST_MAX_TIME:
+                    del self.black_listed_peers[random_peer]
+                else:
+                    continue
             return random_peer[0]
         raise EmptyPeersListError()
 
-    def _update_ips(self):
-        peer_address = self._random_peer()
-        sock = socket()
-        sock.settimeout(self.SOCKET_TIMEOUT)
-        sock.connect(peer_address)
-        sock.send(dumps({'route': 'ips', 'port': self.server_address[1]}).encode())
-        ips_json = sock.recv(1000*1000)
-        ips = map(tuple, loads(ips_json))
-        self.peers |= set(ips)
-
-    def _pull_state(self):
+    def _request_from_random_peer(self, request_dict: dict):
         peer_address = self._random_peer()
         sock = socket(AF_INET, SOCK_STREAM)
         sock.settimeout(self.SOCKET_TIMEOUT)
-        sock.connect(peer_address)
-        sock.send(dumps({'route': 'pull_state', 'port': self.server_address[1]}).encode())
-        state_json = sock.recv(1000 * 1000)
-        state = state_from_dict(loads(state_json))
+        try:
+            sock.connect(peer_address)
+            sock.send(dumps(request_dict).encode())
+            response_json = sock.recv(1000 * 1000)
+        except ConnectionError:
+            self.peers_penalty[peer_address] += 1
+            if self.peers_penalty[peer_address] > PENALTY_THRESHOLD:
+                self.peers.remove(peer_address)
+                self.black_listed_peers[peer_address] = time()
+                self.peers_penalty[peer_address] -= 1
+            return None
+        else:
+            self.peers_penalty[peer_address] = 0
+        return loads(response_json)
+
+    def _update_ips(self):
+        ips = self._request_from_random_peer({'route': 'ips', 'port': self.server_address[1]})
+        if ips is None:
+            return
+        ips = map(tuple, ips)
+        self.peers |= set(ips)
+
+    def _pull_state(self):
+        state_dict = self._request_from_random_peer({'route': 'pull_state', 'port': self.server_address[1]})
+        if state_dict is None:
+            return
+        state = State.from_dict(state_dict)
         self.pulled_states.append(state)
 
     def run(self) -> None:
-        errors = 0
         while self._run:
             sleep(self._pull_interval)
             if not self._run:
@@ -125,10 +136,6 @@ class SocketCommunication(BaseCommunication, Thread):
             try:
                 self._update_ips()
                 self._pull_state()
-            except ConnectionError as CE:
-                print('connection error', CE)
-                errors += 1
-                continue
             except EmptyPeersListError:
                 continue
 
