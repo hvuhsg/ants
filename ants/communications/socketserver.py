@@ -51,12 +51,13 @@ class SocketCommunication(BaseCommunication, Thread):
 
     SOCKET_TIMEOUT = 15
 
-    def __init__(self, host='0.0.0.0', port=34687, pull_interval=10, bootstrap_nodes: list = None):
+    def __init__(self, my_public_ip: str = '255.255.255.255', host='0.0.0.0', port=34687, pull_interval=10, bootstrap_nodes: list = None):
         if bootstrap_nodes is None:
             bootstrap_nodes = []
         self._run = True
         self._pull_interval = pull_interval
 
+        self.my_public_ip = my_public_ip
         self.server_address = (host, port)
         self.peers = set(bootstrap_nodes)  # bootstrap nodes
         self.black_listed_peers = {}
@@ -85,7 +86,7 @@ class SocketCommunication(BaseCommunication, Thread):
     def _random_peer(self) -> tuple:
         for try_count in range(10):
             random_peer = tuple(sample(list(self.peers), 1)[0])
-            if random_peer == self.server_address:
+            if random_peer[0] == self.my_public_ip:
                 continue
             if random_peer in self.black_listed_peers:
                 if time() - self.black_listed_peers[random_peer[0]] >= BLACK_LIST_MAX_TIME:
