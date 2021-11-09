@@ -9,15 +9,23 @@ pip install pyants
 
 ### How it works?
 The library provides you with interface to add assign and do jobs in an decentralized environment.
-For example to create your own node just override some methods:
+To create your own node just override some methods:
 ##### node
 ```python
 from typing import List
 
-from ants import BaseNode, Job
+from ants import BaseNode, Job, Message
 
 
 class MyNode(BaseNode):
+
+    def add_messages(self) -> List[Message]:
+        return []  # List of messages to send to the other nodes (every message will be saved until it expired)
+
+    def process_messages(self, messages: List[Message]):
+        # Process all the current nodes messages 
+        # (every node can create message with it ip for example)
+        pass
 
     def add_jobs(self) -> List[Job]:
         return []  # List of jobs to run (the nodes can create duplicate jobs and the lib will manage that)
