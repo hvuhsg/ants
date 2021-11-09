@@ -20,7 +20,9 @@ class Message:
 
     @property
     def id(self):
-        message_as_string = f'{self.sender}:{dumps(self.payload, sort_keys=True)}'.encode()
+        message_as_string = (
+            f"{self.sender}:{dumps(self.payload, sort_keys=True)}".encode()
+        )
         return sha256(message_as_string).hexdigest()
 
     @property
@@ -29,17 +31,17 @@ class Message:
 
     def to_dict(self) -> dict:
         return {
-            'sender': self.sender,
-            'payload': self.payload,
-            'expiration_date': self.expiration_date.isoformat()
+            "sender": self.sender,
+            "payload": self.payload,
+            "expiration_date": self.expiration_date.isoformat(),
         }
 
     @classmethod
     def from_dict(cls, dict_: dict):
         return cls(
-            sender=dict_['sender'],
-            payload=dict_['payload'],
-            expiration_date=datetime.fromisoformat(dict_['expiration_date'])
+            sender=dict_["sender"],
+            payload=dict_["payload"],
+            expiration_date=datetime.fromisoformat(dict_["expiration_date"]),
         )
 
     def __gt__(self, other):

@@ -1,4 +1,4 @@
 from .socketserver import SocketCommunication
 
 
-__all__ = ['SocketCommunication']
+__all__ = ["SocketCommunication"]

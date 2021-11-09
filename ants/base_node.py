@@ -13,18 +13,18 @@ from .message import Message
 
 class BaseNode(ABC, Thread):
     def __init__(
-            self,
-            initial_config: BaseConfig,
-            initial_state: State,
-            communication: BaseCommunication,
+        self,
+        initial_config: BaseConfig,
+        initial_state: State,
+        communication: BaseCommunication,
     ):
-        self.node_id = randrange(1, 2**64)
+        self.node_id = randrange(1, 2 ** 64)
         self.config = initial_config
         self.state = initial_state
         self.heartbeat = Heartbeat(interval=initial_config.heartbeat_interval)
         self.communication = communication
 
-        super().__init__(name=f'Node {self.node_id}', daemon=True)
+        super().__init__(name=f"Node {self.node_id}", daemon=True)
 
     @property
     def assigned_jobs_count(self) -> int:
@@ -65,7 +65,7 @@ class BaseNode(ABC, Thread):
         return list(
             filter(
                 lambda job: job.assigned_to == self.node_id,
-                self._filter_jobs_by_status(JobStatus.ASSIGNED)
+                self._filter_jobs_by_status(JobStatus.ASSIGNED),
             )
         )
 
@@ -92,7 +92,9 @@ class BaseNode(ABC, Thread):
 
             self.do_jobs(self.__filter_my_assigned_jobs())
 
-            assigned_jobs = self.assign_to_jobs(self._filter_jobs_by_status(JobStatus.PENDING))
+            assigned_jobs = self.assign_to_jobs(
+                self._filter_jobs_by_status(JobStatus.PENDING)
+            )
             for job in assigned_jobs:
                 job.assign(self.node_id)
 

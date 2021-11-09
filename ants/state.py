@@ -25,24 +25,24 @@ class State:
 
     def to_dict(self) -> dict:
         jobs = {job_id: job.to_dict() for job_id, job in self.jobs.items()}
-        messages = {message_id: message.to_dict() for message_id, message in self.messages.items()}
-        return {'jobs': jobs, 'messages': messages}
+        messages = {
+            message_id: message.to_dict()
+            for message_id, message in self.messages.items()
+        }
+        return {"jobs": jobs, "messages": messages}
 
     @classmethod
     def from_dict(cls, dict_: dict):
-        jobs = {job_id: Job.from_dict(job_dict) for job_id, job_dict in dict_['jobs'].items()}
+        jobs = {
+            job_id: Job.from_dict(job_dict)
+            for job_id, job_dict in dict_["jobs"].items()
+        }
         messages = {
             message_id: Message.from_dict(message_dict)
-            for message_id, message_dict in dict_['messages'].items()
+            for message_id, message_dict in dict_["messages"].items()
         }
         return cls(jobs=jobs, messages=messages)
 
     def __str__(self):
-        max_jobs_printed = 3
-        state_str = 'State(\n'
-        for job in list(self.jobs.values())[:min(max_jobs_printed, len(self.jobs))]:
-            state_str += str(job) + '\n'
-        if len(self.jobs) > max_jobs_printed:
-            state_str += '...\n'
-        state_str += ')'
+        state_str = f"State(jobs={len(self.jobs)}, messages={len(self.messages)})"
         return state_str
