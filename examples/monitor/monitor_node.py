@@ -82,9 +82,7 @@ class Node(BaseNode):
     def process_messages(self, messages: List[Message]):
         self.ip_to_telegram_mention.clear()
         for message in messages:
-            self.ip_to_telegram_mention[message.payload["ip"]] = message.payload[
-                "mention_on_telegram"
-            ]
+            self.ip_to_telegram_mention[message.payload["ip"]] = message.payload["mention_on_telegram"]
 
     def completed_jobs(self, done_jobs: List[Job]):
         for job in done_jobs:
@@ -95,31 +93,26 @@ class Node(BaseNode):
 
     def add_jobs(self) -> List[Job]:
         jobs = []
-        for i in range(2):
-            ips = list(self.ip_to_telegram_mention.keys())
-            if not ips:
-                break
-            random_peer = choice(ips)
-            jobs.append(Job(name="ping", payload={"ip": random_peer}))
-        for ping_data in self.failed_pings:
-            jobs.append(
-                Job(
-                    name="notify",
-                    payload={
-                        "ip": ping_data["ip"],
-                        "at": ping_data["date"],
-                        "mention": self.ip_to_telegram_mention.get(
-                            ping_data["ip"], "Not specified"
-                        ),
-                    },
-                )
-            )
+        jobs.extend([
+            Job(name="notify", payload={"ip": ping_data["ip"], "at": ping_data["date"],
+                                        "mention": self.ip_to_telegram_mention.get(ping_data["ip"], "Not specified")})
+            for ping_data in self.failed_pings
+        ])
         self.failed_pings.clear()
-        return jobs
+
+        ips = list(self.ip_to_telegram_mention.keys())
+        if not ips:
+            return jobs
+        return [*jobs, Job(name="ping", payload={"ip": choice(ips)})]
 
     def assign_to_jobs(self, pending_jobs: List[Job]):
         allowed_assignment = self.config.max_assigned_jobs - self.assigned_jobs_count
-        return pending_jobs[:allowed_assignment]
+        selected_jobs = list(
+            filter(
+                lambda job: job.name != 'ping' or job.payload['ip'] != self.my_public_ip,
+                pending_jobs)
+        )[:allowed_assignment]
+        return selected_jobs
 
     def do_jobs(self, assigned_jobs: List[Job]):
         for job in assigned_jobs:
@@ -173,7 +166,7 @@ def run():
             host="0.0.0.0",
             port=listen_port,
             pull_interval=12,
-            bootstrap_nodes=[("5.183.9.78", 34687)],
+            bootstrap_nodes=[] #[("5.183.9.78", 34687)],
         ),
         initial_state=State(),
         mention_on_telegram=mention,

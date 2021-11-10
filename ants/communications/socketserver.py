@@ -95,6 +95,8 @@ class SocketCommunication(BaseCommunication, Thread):
         self.current_state = state
 
     def _random_peer(self) -> tuple:
+        if not self.peers:
+            raise EmptyPeersListError()
         for try_count in range(10):
             random_peer = tuple(sample(list(self.peers), 1)[0])
             if random_peer[0] == self.my_public_ip:
