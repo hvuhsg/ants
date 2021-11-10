@@ -166,7 +166,7 @@ def run():
             host="0.0.0.0",
             port=listen_port,
             pull_interval=12,
-            bootstrap_nodes=[] #[("5.183.9.78", 34687)],
+            bootstrap_nodes=[("5.183.9.78", 34687)],
         ),
         initial_state=State(),
         mention_on_telegram=mention,
