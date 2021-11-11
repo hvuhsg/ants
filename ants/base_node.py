@@ -2,7 +2,6 @@ from threading import Thread
 from typing import List
 from abc import ABC, abstractmethod
 from random import randrange
-from functools import wraps
 
 from .state import State
 from .base_communication import BaseCommunication
@@ -16,15 +15,16 @@ class BaseNode(ABC, Thread):
     def __init__(
         self,
         initial_config: BaseConfig,
-        initial_state: State,
         communication: BaseCommunication,
+        initial_state: State = None,
     ):
+        if initial_state is None:
+            initial_state = State()
         self.node_id = randrange(1, 2 ** 64)
         self.config = initial_config
         self.state = initial_state
         self.heartbeat = Heartbeat(interval=initial_config.heartbeat_interval)
         self.communication = communication
-        self.__job_handlers = {}  # {job name: callable<job handler>}
 
         super().__init__(name=f"Node {self.node_id}", daemon=True)
 
@@ -80,29 +80,8 @@ class BaseNode(ABC, Thread):
             if message.is_expired:
                 del self.state.messages[message.id]
 
-    def __call_handlers(self, assigned_jobs: List[Job]):
-        wildcard_handler = self.__job_handlers.get('*', None)
-        for job in assigned_jobs:
-            job_handler = self.__job_handlers.get(job.name, None)
-            if job_handler is None:
-                if wildcard_handler is not None:
-                    wildcard_handler(self, job)
-                else:
-                    raise RuntimeError(
-                        f'Job handler is not registered for <{job.name}> and not wildcard handler is registered.'
-                    )
-            else:
-                job_handler(self, job)
-
-    def on(self, job_name: str):
-        def decorator(func):
-            self.__job_handlers[job_name] = func
-
-            @wraps
-            def wrapper(node, job):
-                return func(node, job)
-            return wrapper
-        return decorator
+    def shutdown(self):
+        self.heartbeat.stop()
 
     def run(self):
         for beat_number in self.heartbeat:
@@ -115,9 +94,7 @@ class BaseNode(ABC, Thread):
             self.__remove_expired_messages()
 
             self.process_messages(self.state.messages.values())
-
             self.do_jobs(self.__filter_my_assigned_jobs())
-            # self.__call_handlers(self.__filter_my_assigned_jobs())
 
             assigned_jobs = self.assign_to_jobs(
                 self._filter_jobs_by_status(JobStatus.PENDING)
