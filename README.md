@@ -1,5 +1,5 @@
 # ants
-Allow you to create you own custom decentralize job management system.
+Allow you to create you'r own custom decentralize job management system.
 
 
 ### install
